@@ -115,6 +115,8 @@ if test "$blinux" = true; then
    AC_ARG_ENABLE(ceph, AC_HELP_STRING([--enable-ceph], [enable ceph backend]),
       [compile_ceph=$enableval],[compile_ceph="no"])
 
+   AC_ARG_ENABLE(s3, AC_HELP_STRING([--enable-s3], [enable amazon s3 backend]]),
+      [compile_s3=$enableval],[compile_s3="no"])
 fi
 
 AC_ARG_ENABLE(python,
@@ -166,6 +168,7 @@ AM_CONDITIONAL([COMPILE_HTTPSERVER], [test "${compile_httpserver}" = "yes"])
 #AM_CONDITIONAL([COMPILE_SEABLOCK], [test "${compile_seablock}" = "yes"])
 AM_CONDITIONAL([COMPILE_RIAK], [test "${compile_riak}" = "yes"])
 AM_CONDITIONAL([COMPILE_CEPH], [test "${compile_ceph}" = "yes"])
+AM_CONDITIONAL([COMPILE_S3], [test "${compile_s3}" = "yes"])
 
 AM_CONDITIONAL([WIN32], [test "$bwin32" = "true"])
 AM_CONDITIONAL([MACOS], [test "$bmac" = "true"])
@@ -408,6 +411,13 @@ if test "${compile_ceph}" = "yes"; then
    AC_DEFINE([HAVE_RADOS], [1], ["define if have rados"])
 fi
 
+if test "${compile_s3}" = "yes"; then
+   PKG_CHECK_MODULES(CURL, [libcurl >= $CURL_REQUIRED])
+   AC_SUBST(CURL_CFLAGS)
+   AC_SUBST(CURL_LIBS)
+   AC_DEFINE([S3_BACKEND], [1], ["define if support S3 backend"])
+fi
+
 ac_configure_args="$ac_configure_args -q"
 
 AC_CONFIG_FILES(
@@ -461,6 +471,10 @@ fi
 
 if test x${compile_httpserver} = xyes; then
    echo    "httpserver"
+fi
+
+if test x${compile_s3} = xyes; then
+   echo    "amazon-s3"
 fi
 #if test x${compile_seablock} = xyes; then
 #   echo    "seablock"

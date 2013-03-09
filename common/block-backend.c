@@ -9,6 +9,10 @@ block_backend_fs_new (const char *block_dir, const char *tmp_dir);
 #ifdef SEAFILE_SERVER
 extern BlockBackend *
 block_backend_ceph_new (const char *ceph_conf, const char *poolname);
+
+extern BlockBackend *
+block_backend_s3_new (const char *bucket_name, const char *key_id,
+                      const char *key);
 #endif
 
 BlockBackend*
@@ -64,6 +68,50 @@ load_ceph_block_backend(GKeyFile *config)
 
     return bend;
 }
+
+BlockBackend*
+load_s3_block_backend(GKeyFile *config)
+{
+    BlockBackend *bend;
+    char *bucket_name;
+    char *key_id;
+    char *key;
+    char *id;
+
+    id = g_key_file_get_string (config, "awsid", "s3_config", NULL);
+    if (!id) {
+        g_warning("Amazon S3 config file not set in config.\n");
+        return NULL;
+    }
+
+    bucket_name = g_key_file_get_string (config, "bucket_name", "s3_config", NULL);
+    if (!bucket_name) {
+        g_warning("Amazon S3 config file not set in config.\n");
+        g_free(id);
+        return NULL;
+    }
+
+    key_id = g_key_file_get_string (config, "key_id", "s3_config", NULL);
+    if (!key_id) {
+        g_warning("Amazon S3 config file not set in config.\n");
+        g_free(id);
+        g_free(bucket_name);
+        return NULL;
+    }
+
+    key = g_key_file_get_string (config, "key", "s3_config", NULL);
+    if (!key) {
+        g_warning("Amamzon S3 config file not set in config.\n");
+        g_free(id);
+        g_free(bucket_name);
+        g_free(key_id);
+        return NULL;
+    }
+
+    bend = block_backend_s3_new (bucket_name, key_id, key);
+
+    return bend;
+}
 #endif
 
 BlockBackend*
@@ -87,6 +135,10 @@ load_block_backend (GKeyFile *config)
         bend = load_ceph_block_backend(config);
         g_free(backend);
         return bend;
+    }
+    else if (strcmp(backend, "s3") == 0) {
+        bend = load_s3_block_backend(config);
+        g_free(backend);
     }
 #endif
 

@@ -35,6 +35,7 @@ seaf_mon_SOURCES = \
 	../common/block-backend.c \
 	../common/block-backend-fs.c \
 	../common/block-backend-ceph.c \
+    ../common/block-backend-s3.c \
 	../common/commit-mgr.c \
 	../common/avl/avl.c \
 	../common/log.c \
